@@ -1,1 +1,3 @@
-pytablewriter
+dash
+dash-daq
+pandas
