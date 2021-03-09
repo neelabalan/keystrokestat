@@ -2,30 +2,27 @@
 
 A tool for silent keystroke logging in the background using `xinput`
 
+## Screenshot at localhost:8050
+> The state doesn't get updated in realtime. The page needs to be refereshed to load the recent data :neutral_face:
 
+![plotly screenshot](./assets/plotly-scr.png)
+
+## Under Development
 
 ## Motivation
 
 I wanted to know how much typing I do and what keys I'm using more
 
+### Security implications
 
+All the keystrokes are recorded! including the passwords and username that you type. Use at your own risk.
 
 ## Requirements
 
 + `xinput` 
     + installation for xinput varies from distro to distro
-+ `pytablewriter` for markdown table output
-    + install using `pip3 install pytablewriter`
-
-
-
-## Installation
-
-```bash
-git clone git.github.com/neelabalan/keystrokestat
-cd keystrokestat
-pip3 install -r requirements.txt
-```
++ `dash, dash-daq and pandas` for interactive graph
+    + install using `pip install -r requirements.txt`
 
 
 
@@ -56,24 +53,29 @@ the device ID from terminal by running `xinput`. In my case the device ID is `19
 
 ```bash
 # starts xinput in the background
-[blue@linux] ~ python3 keystroke.py --run 19
+[blue@linux] ~ python keystroke.py --run 
 
-# prints markdown table with keystroke frequency and percentage 
-[blue@linux] ~ python3 keystroke.py --stats
+# to start the dash server
+[blue@linux] ~ python keystroke.py --stats
 
 # for killing the xinput process running in the background
-[blue@linux] ~ python3 keystroke.py --kill
+[blue@linux] ~ python keystroke.py --kill
 
-# export to markdown
-[blue@linux] ~ python3 keystroke.py --stats > stats.md
+```
 
+> script
+```bash
+# run.sh
+# running xinput test in background
+python keystroke.py -r
+nohup python keystroke -s &
 ```
 
 > Tested on Ubuntu 20.04.1 LTS
 
 
 
-### Take a look at my personal [stats](./stats.md)
+### Take a look at my personal [stats](./assets/stats.md)
 
 > The reason why you see high frequency for j, k, l, h are because of `vi` usage
 > I was quite suprised myself to see the stat :blush: 
@@ -88,27 +90,16 @@ import os
 from collections import Counter
 import matplotlib.pyplot as plt
 
-from keystroke import getKeyPresses
+from keystroke import stats
 
-filepath = os.path.join(
-        os.path.expanduser('~'), 
-        'keystrokes.log'
-    )
+filepath = os.path.join('keystrokes.log')
 
 file = open(filepath, 'r')
 contents = file.read()
 
-freq = Counter(getKeyPresses(contents))
-plt.bar(freq.keys(), freq.values())
-plt.xticks(rotation=90)
-plt.show()
+df = stats()
+print(df.head())
 ```
-
-
-## Screenshot of the plot
-
-![Matplotlib screenshot](./matplot.png)
-
 
 
 ## Finally
