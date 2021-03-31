@@ -1,21 +1,27 @@
 import subprocess
 import argparse
 import os
-from collections import Counter, OrderedDict
-
+import datetime
 import dash
 import dash_daq as daq
+import pandas as pd
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly.express as px
-
-import pandas as pd
-
+from pathlib import Path
+from collections import Counter, OrderedDict
 from keymap import keymap
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
+home = str(Path.home())
+logname =  str(datetime.datetime.now().date()) + 'keystrokes.log'
+logdir =  home + '/.keystrokestat/'
+logpath =  logdir + logname
+
+if not os.path.exists(logdir):
+    os.makedirs(logdir)
 
 def remove_empty_str_from_list(stringList):
     ''' removes empty strings from list '''
@@ -46,8 +52,7 @@ def kill(targetProcess):
 
 def run():
     ''' run the app and log the keystrokes in keystroke.log '''
-    # xinput list | grep -Po 'id=\K\d+(?=.*slave\s*keyboard)' | xargs -P0 -n1 xinput test
-    logfile = open('keystrokes.log', 'w')
+    logfile = open(logpath, 'w')
     try:
         xinput_ids = subprocess.Popen(
             "xinput list | grep -Po 'id=\K\d+(?=.*slave\s*keyboard)'",
@@ -87,7 +92,7 @@ def get_key_presses(contents):
 
 
 def get_contents():
-    with open('keystrokes.log', 'r') as file:
+    with open(logpath, 'r') as file:
         contents = file.read()
         return contents
 
