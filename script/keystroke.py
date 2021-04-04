@@ -13,28 +13,29 @@ logpath =  logdir + logname
 if not os.path.exists(logdir):
     os.makedirs(logdir)
 
-def remove_empty_str_from_list(stringList):
+def remove_empty_str_from_list(str_list):
     ''' removes empty strings from list '''
-    return [string for string in stringList if string]
+    return [string for string in str_list if string]
 
 
-def getPIDs(output, targetProcess):
+def get_pids(output, target_process):
     ''' get pid for running target process '''
-    filteredProcessList = [
-        str(process) for process in output.splitlines() if targetProcess in str(process)]
+    filtered_process_list = [
+        str(process) for process in output.splitlines() if target_process in str(process)
+    ]
     pids = list()
-    for process in filteredProcessList:
-        process = removeEmptyStringFromList(process.split(' '))
+    for process in filtered_process_list:
+        process = list(filter(None, process.split(' ')))
         pids.append(process[1])
     return pids
 
 
-def kill(targetProcess):
+def kill(target_process):
     ''' kills the xinput test process '''
     if targetProcess:
         process = subprocess.Popen(['ps', 'aux'], stdout=subprocess.PIPE)
         output, error = process.communicate()
-        pids = getPIDs(output, targetProcess)
+        pids = get_pids(output, target_process)
         for pid in pids:
             print('killing PID {}'.format(pid))
             os.kill(int(pid), 9)
