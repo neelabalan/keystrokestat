@@ -36,7 +36,7 @@ def get_pids(output, target_process):
     ]
     pids = list()
     for process in filtered_process_list:
-        process = remove_empty_strings_from_list(process.split(' '))
+        process = list(filter(None, process.split(' ')))
         pids.append(process[1])
     return pids
 

@@ -13,7 +13,6 @@ from keymap import keymap
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
-
 def serve_layout():
     fig = px.bar(stats(), barmode="group")
     return html.Div([
