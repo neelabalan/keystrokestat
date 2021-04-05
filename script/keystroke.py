@@ -13,7 +13,6 @@ from keymap import keymap
 SCHEDULER_INTERVAL= 5
 scheduler = BackgroundScheduler(daemon=True)
 engine = create_engine('sqlite:///{}/.keystroke/keystrokes.db'.format(str(Path.home())))
-sqlite_connection = engine.connect()
 
 def get_xinput_ids():
     try:
@@ -83,6 +82,7 @@ def workflow(buffer):
     -> map xinput code to char
     -> transform pd dataframe and store to sqlite
     '''
+    sqlite_connection = engine.connect()
     keypress = map_keycode_to_keys(
             filter_text(
                 split_text(
@@ -90,7 +90,7 @@ def workflow(buffer):
                 )
         )
     )
-    df = pd.DataFrame.from_dict(
+    df = pd.DataFrame(
         [
             {
                 **Counter(keypress), 
@@ -99,11 +99,14 @@ def workflow(buffer):
                     'total': len(keypress)
                 }
             }
-        ]
+        ], columns=keymap.values()
     )
-    # print(df.head())
+    print(df.head())
 
-    df.to_sql('keystroke', sqlite_connection, if_exists='append')
+    if not df.empty:
+        df.to_sql('keystroke', sqlite_connection, if_exists='append')
+    sqlite_connection.close()
+
 
 def run():
     ''' run the app and log the keystrokes BufferedReader '''
@@ -117,6 +120,13 @@ def run():
     # workflow(echos)
     scheduler.add_job(workflow, trigger='interval', seconds=SCHEDULER_INTERVAL, args=(echos,))
     scheduler.start()
+    import time
+    try:
+        while True:
+            time.sleep(2)
+    except (KeyboardInterrupt, SystemExit):
+        scheduler.shutdown()
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
