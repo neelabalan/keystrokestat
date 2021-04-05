@@ -1,11 +1,11 @@
 import subprocess
-import argparse
 import datetime
 import pandas as pd
 import datetime
 import os
+import sys
 from pathlib import Path
-from collections import Counter, OrderedDict
+from collections import Counter 
 from sqlalchemy import create_engine
 from apscheduler.schedulers.background import BackgroundScheduler
 from keymap import keymap
@@ -80,7 +80,7 @@ def workflow(buffer):
     -> transform text for easy filtering 
     -> filter key releases and empty string 
     -> map xinput code to char
-    -> transform pd dataframe and store to sqlite
+    -> transform to pandas dataframe and write to sqlite
     '''
     sqlite_connection = engine.connect()
     keypress = map_keycode_to_keys(
@@ -90,20 +90,18 @@ def workflow(buffer):
                 )
         )
     )
+    meta_dict = {
+        'timestamp': datetime.datetime.now(),
+        'total': len(keypress),
+    }
     df = pd.DataFrame(
         [
-            {
-                **Counter(keypress), 
-                **{
-                    'timestamp': datetime.datetime.now(), 
-                    'total': len(keypress)
-                }
-            }
-        ], columns=keymap.values()
+            { **Counter(keypress), **meta_dict }
+        ], columns=list(keymap.values()) + list(meta_dict.keys())
     )
     print(df.head())
 
-    if not df.empty:
+    if keypress:
         df.to_sql('keystroke', sqlite_connection, if_exists='append')
     sqlite_connection.close()
 
@@ -117,6 +115,7 @@ def run():
     except:
         print('EXCEPTION not valid device id')
 
+    # testing
     # workflow(echos)
     scheduler.add_job(workflow, trigger='interval', seconds=SCHEDULER_INTERVAL, args=(echos,))
     scheduler.start()
@@ -129,25 +128,10 @@ def run():
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '-r',
-        '--run',
-        action='store_true',
-        help='spwans a thread to record the keystrokes'
-    )
-    parser.add_argument(
-        '-k',
-        '--kill',
-        action='store_true',
-        help='kills the xinput test process'
-    )
-
-    args = parser.parse_args()
-    if args:
-        if args.run:
-            run()
-        elif args.kill:
-            kill('xinput test')
-        else:
-            print('wrong arguments provided')
+    arg = sys.argv[1]
+    if arg == '-r':
+        run()
+    elif arg == '-k':
+        kill('xinput test')
+    else:
+        print('wrong arguments provided')
