@@ -3,19 +3,17 @@ import argparse
 import datetime
 import pandas as pd
 import datetime
+import os
 from pathlib import Path
 from collections import Counter, OrderedDict
 from sqlalchemy import create_engine
 from apscheduler.schedulers.background import BackgroundScheduler
+from keymap import keymap
 
-
-SCHEDULER_INTERVAL_MINS = 5
+SCHEDULER_INTERVAL= 5
 scheduler = BackgroundScheduler(daemon=True)
-engine = create_engine('sqlite:///keystrokes.db')
-
-# def remove_empty_str_from_list(string_list):
-#     ''' removes empty strings from list '''
-#     return [string for string in string_list if string]
+engine = create_engine('sqlite:///{}/.keystroke/keystrokes.db'.format(str(Path.home())))
+sqlite_connection = engine.connect()
 
 def get_xinput_ids():
     try:
@@ -43,7 +41,7 @@ def get_pids(output, target_process):
 
 def kill(target_process):
     ''' kills the xinput test process '''
-    if targetProcess:
+    if target_process:
         process = subprocess.Popen(['ps', 'aux'], stdout=subprocess.PIPE)
         output, error = process.communicate()
         pids = get_pids(output, target_process)
@@ -62,22 +60,22 @@ def split_text(buffer_text: str):
 def filter_text(lines):
     ''' filter empty strings and key releases '''
     filtered_lines = filter(
-        lambda key_release_filter: line.startswith('key press'), lines
+        lambda line: line.startswith('key press'), lines
     )
     return list(filter(None, filtered_lines))
 
 def map_keycode_to_keys(filtered_lines):
-    keymap.get(
-        int(
-            list(
-                filter(None, keycode.split(' '))
-            )[-1]
-        )
-    ) for keycode in filtered_lines 
+    return [
+        keymap.get(
+            int(
+                list(
+                    filter(None, keycode.split(' '))
+                )[-1]
+            )
+        ) for keycode in filtered_lines
+    ] 
 
-# TODO: pass args buffer
-@sched.scheduled_job('interval', minutes=SCHEDULER_INTERVAL_MINS)
-def workflow():
+def workflow(buffer):
     ''' 
     -> read from buffer 
     -> transform text for easy filtering 
@@ -93,12 +91,19 @@ def workflow():
         )
     )
     df = pd.DataFrame.from_dict(
-        {**Counter(keypress), **{'timestamp': datetime.datetime.now(), 'total': len(keypress)}}
+        [
+            {
+                **Counter(keypress), 
+                **{
+                    'timestamp': datetime.datetime.now(), 
+                    'total': len(keypress)
+                }
+            }
+        ]
     )
+    # print(df.head())
 
-    engine.connect()
     df.to_sql('keystroke', sqlite_connection, if_exists='append')
-    # engine.close()
 
 def run():
     ''' run the app and log the keystrokes BufferedReader '''
@@ -109,8 +114,9 @@ def run():
     except:
         print('EXCEPTION not valid device id')
 
+    # workflow(echos)
+    scheduler.add_job(workflow, trigger='interval', seconds=SCHEDULER_INTERVAL, args=(echos,))
     scheduler.start()
-    return echos
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -133,3 +139,5 @@ if __name__ == "__main__":
             run()
         elif args.kill:
             kill('xinput test')
+        else:
+            print('wrong arguments provided')

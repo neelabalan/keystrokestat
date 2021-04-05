@@ -8,7 +8,6 @@ import dash_html_components as html
 import plotly.express as px
 from pathlib import Path
 from collections import Counter, OrderedDict
-from keymap import keymap
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
