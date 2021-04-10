@@ -10,8 +10,6 @@ A tool for silent keystroke logging in the background using `xinput`
 
 ![plotly screenshot](./assets/plotly-scr.png)
 
-## Under Development
-
 ## Motivation
 
 I wanted to know how much typing I do and what keys I'm using more
@@ -66,14 +64,6 @@ the device ID from terminal by running `xinput`. In my case the device ID is `19
 
 ```
 
-> script
-```bash
-# run.sh
-# running xinput test in background
-python keystroke.py -r
-nohup python keystroke -s &
-```
-
 > Tested on Ubuntu 20.04.1 LTS
 
 
@@ -82,27 +72,6 @@ nohup python keystroke -s &
 
 > The reason why you see high frequency for j, k, l, h are because of `vi` usage
 > I was quite suprised myself to see the stat :blush: 
-
-
-## Extending
-
-> once you have the `xinput` running in the background and logging is happening in **~/keystroke.log**
-
-```python
-import os
-from collections import Counter
-import matplotlib.pyplot as plt
-
-from keystroke import stats
-
-filepath = os.path.join('keystrokes.log')
-
-file = open(filepath, 'r')
-contents = file.read()
-
-df = stats()
-print(df.head())
-```
 
 
 ## Finally
