@@ -28,14 +28,17 @@ def get_total_keystrokes():
 
 
 def get_sum_of_all_keypress():
-    print(data_for_the_day().sum().drop(["total", "timestamp"]))
-    return (
-        pd.DataFrame(data_for_the_day().sum()).drop(["total", "timestamp"]).transpose()
-    )
+    return data_for_the_day() \
+        .sum() \
+        .to_frame() \
+        .reset_index() \
+        .drop([0, 101, 102]) \
+        .rename(columns={'index': 'keystroke', 0: 'frequency'})
 
 
 def serve_layout():
-    fig = px.bar(get_sum_of_all_keypress(), barmode="group")
+    bar_fig = px.bar(get_sum_of_all_keypress(), x='keystroke', y='frequency', barmode="group")
+    pie_fig = px.pie(get_sum_of_all_keypress().head(), values='frequency', names='keystroke', title='keypress pie distribution')
     return html.Div(
         [
             html.H1(children="Total keystrokes", style={"textAlign": "center"}),
@@ -51,7 +54,8 @@ def serve_layout():
             html.Div(
                 children=[
                     html.H1(children="Keystroke graph", style={"textAlign": "center"}),
-                    dcc.Graph(id="example-graph", figure=fig),
+                    dcc.Graph(id="example-graph", figure=bar_fig),
+                    dcc.Graph(id="pie-graph", figure=pie_fig)
                 ]
             ),
         ]
