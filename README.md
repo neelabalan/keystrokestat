@@ -2,9 +2,6 @@
 
 A tool for silent keystroke logging in the background using `xinput`
 
-## Under development :exclamation:
-> take a look at previous commits for complete working code 
-
 ## Screenshot at localhost:8050
 > The state doesn't get updated in realtime. The page needs to be refereshed to load the recent data :neutral_face:
 
@@ -27,12 +24,10 @@ All the keystrokes are recorded! including the passwords and username that you t
 
 
 
-## How to
+## How this works 
 
-The device ID for the keyboard is required to log the keystrokes. You can get 
-the device ID from terminal by running `xinput`. In my case the device ID is `19`
-
-
+The device ID from the `xinput` for the keyboard being used is needed to log the keystrokes.
+To get the device ID run `xinput` from terminal. In my case the device ID is `19` for my keyboard
 
 ```bash
 [blue@linux] ~ xinput
@@ -51,17 +46,46 @@ the device ID from terminal by running `xinput`. In my case the device ID is `19
     ↳ Mi TV soundbar (AVRCP)                  	id=10	[slave  keyboard (3)]
 ```
 
+The `xinput test` command with the device ID will print key release and key press to the `stdout`. 
+The python script uses the `subprocess` module to call the command and record `stdout` which is read from the buffer 
+every few minutes for storing the data in `SQLite` DB post processing of `stdout` buffer.
 
 ```bash
-# starts xinput in the background
-[blue@linux] ~ python keystroke.py --run 
+[blue@linux] ~ xinput test 19
+xinput test 11
+key release 36
+key press   57
+nkey press   31
+ikey press   54
+ckey release 57
+key press   26
+key release 31
+ekey release 54
+key release 26
+key press   42
+gkey press   27
+rkey release 42
+key press   26
+ekey release 27
+key press   38
+akey release 26
+```
 
-# to start the dash server
-[blue@linux] ~ python keystroke.py --stats
+
+## How to run this?
+```bash
+# starts xinput in the background
+[blue@linux] ~ python keystroke.py -r 
 
 # for killing the xinput process running in the background
-[blue@linux] ~ python keystroke.py --kill
+[blue@linux] ~ python keystroke.py -k
 
+```
+
+To start the Dash sever 
+
+```bash
+docker-compose up
 ```
 
 > Tested on Ubuntu 20.04.1 LTS
