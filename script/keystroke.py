@@ -15,7 +15,7 @@ scheduler = BackgroundScheduler(daemon=True)
 engine = create_engine("sqlite:///{}/.keystroke/keystrokes.db".format(str(Path.home())))
 
 
-def get_xinput_ids():
+def get_xinput_ids()    :
     try:
         xinput_ids = subprocess.Popen(
             "xinput list | grep -Po 'id=\K\d+(?=.*slave\s*keyboard)'",
@@ -122,6 +122,7 @@ def run():
         while True:
             time.sleep(2)
     except (KeyboardInterrupt, SystemExit):
+        kill('xinput test')
         scheduler.shutdown()
 
 
