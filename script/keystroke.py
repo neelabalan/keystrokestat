@@ -6,13 +6,15 @@ import os
 import sys
 from pathlib import Path
 from collections import Counter
-from sqlalchemy import create_engine
+
+import sqlite3
 from apscheduler.schedulers.background import BackgroundScheduler
+
 from keymap import keymap
 
 SCHEDULER_INTERVAL = 5
 scheduler = BackgroundScheduler(daemon=True)
-engine = create_engine("sqlite:///{}/.keystroke/keystrokes.db".format(str(Path.home())))
+conn = sqlite3.connect("/{}/.keystroke/keystrokes.db".format(str(Path.home())))
 
 
 def get_xinput_ids()    :
@@ -84,7 +86,6 @@ def workflow(buffer):
     -> map xinput code to char
     -> transform to pandas dataframe and write to sqlite
     """
-    sqlite_connection = engine.connect()
     keypress = map_keycode_to_keys(filter_text(split_text(read_buffer(buffer))))
     meta_dict = {
         "timestamp": datetime.datetime.now(),
@@ -94,11 +95,11 @@ def workflow(buffer):
         [{**Counter(keypress), **meta_dict}],
         columns=list(keymap.values()) + list(meta_dict.keys()),
     )
-    print(df.head())
+    # print(df.head())
 
     if keypress:
-        df.to_sql("keystroke", sqlite_connection, if_exists="append")
-    sqlite_connection.close()
+        df.to_sql("keystroke", con=conn, if_exists="append")
+    conn.close()
 
 
 def run():

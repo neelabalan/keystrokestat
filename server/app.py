@@ -1,22 +1,23 @@
 import datetime
+
+import sqlite3
 import dash
 import dash_daq as daq
 import pandas as pd
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly.express as px
-from sqlalchemy import create_engine
 
 # testing
 # engine = create_engine('sqlite:////home/blue/.keystroke/keystrokes.db')
-engine = create_engine("sqlite:////root/.keystroke/keystrokes.db")
+conn = sqlite3.connect("/root/.keystroke/keystrokes.db")
 external_stylesheets = ["https://codepen.io/chriddyp/pen/bWLwgP.css"]
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 
 def data_for_the_day():
     """ total keystrokes for the day from db """
-    with engine.connect() as conn:
+    with conn: 
         query = "select * from keystroke where timestamp like '{}%'".format(
             str(datetime.datetime.now().date())
         )
