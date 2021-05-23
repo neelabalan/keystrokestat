@@ -13,10 +13,10 @@ import pandas as pd
 
 
 # testing
-# test_path = '/home/blue/.keystroke/keystrokes.db'
+test_path = '/home/blue/.keystroke/keystrokes.db'
 DB_PATH = '/root/.keystroke/keystorkes.db'
 external_stylesheets = ["https://codepen.io/chriddyp/pen/bWLwgP.css"]
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets, update_title=None)
 
 data = {
     'time': [],
@@ -26,7 +26,8 @@ data = {
 
 def data_for_the_day():
     """ total keystrokes for the day from db """
-    with sqlite3.connect(DB_PATH) as conn:
+    with sqlite3.connect(test_path) as conn:
+    # with sqlite3.connect(DB_PATH) as conn:
         query = "select * from keystroke where timestamp like '{}%'".format(
             str(datetime.datetime.now().date())
         )
@@ -52,10 +53,10 @@ def serve_layout():
         [
             html.H1(children="Total keystrokes", style={"textAlign": "center"}),
             daq.LEDDisplay(
-                id="my-LED-display",
+                id="live-count-update",
                 label="",
                 color="#103366",
-                value=get_total_keystrokes(),
+                value='0',
                 style={"textAlign": "center"},
             ),
             html.Br(),
@@ -99,7 +100,14 @@ def update_graph_live(n):
 
     return fig
 
+@app.callback(
+    Output('live-count-update', 'value'),
+    Input('interval-component', 'n_intervals')
+)
+def update_total_count(n):
+    return str(get_total_keystrokes())
+
 
 if __name__ == "__main__":
     app.layout = serve_layout
-    app.run_server(host="0.0.0.0", port=8050, dev_tools_hot_reload=True)
+    app.run_server(host="0.0.0.0", port=8050)
