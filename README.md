@@ -3,7 +3,7 @@
 A tool for silent keystroke logging in the background using `xinput`
 
 ## Screenshot at localhost:8050
-> The state doesn't get updated in realtime. The page needs to be refereshed to load the recent data :neutral_face:
+> Only the scatter plot is udpated in real time 
 
 ![plotly screenshot](./assets/plotly-scr.png)
 
