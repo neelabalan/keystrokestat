@@ -3,6 +3,7 @@ import sqlite3
 
 import dash
 import dash_daq as daq
+from numpy import append
 import plotly.graph_objs as go
 import plotly.express as px
 import dash_core_components as dcc
@@ -20,7 +21,8 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets, update_titl
 
 data = {
     'time': [],
-    'keystrokes': []
+    'keystrokes': [],
+    'last_updated': None
 }
 
 
@@ -89,13 +91,15 @@ def update_graph_live(n):
     # Collect some data
     db_data = data_for_the_day()
     last_val = db_data['total'].iloc[-1]
-    if db_data.empty:
-        data['keystrokes'].append(0)
 
+    last_timestamp = db_data['timestamp'].iloc[-1]
+    if data['last_updated'] == last_timestamp:
+        data['keystrokes'].append(0)
+    else:
+        data['keystrokes'].append(last_val)
+        data['last_updated'] = last_timestamp
 
     data['time'].append(datetime.datetime.now().strftime('%X'))
-    data['keystrokes'].append(last_val)
-
     fig = go.Figure(data=[go.Scatter(x=data['time'], y=data['keystrokes'])])
 
     return fig
