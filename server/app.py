@@ -50,7 +50,6 @@ def get_sum_of_all_keypress():
 
 
 def serve_layout():
-    bar_fig = px.bar(get_sum_of_all_keypress(), x='keystroke', y='frequency', barmode="group")
     return html.Div(
         [
             html.H1(children="Total keystrokes", style={"textAlign": "center"}),
@@ -66,7 +65,7 @@ def serve_layout():
             html.Div(
                 children=[
                     html.H1(children="Keystroke graph", style={"textAlign": "center"}),
-                    dcc.Graph(id="example-graph", figure=bar_fig),
+                    dcc.Graph(id="bar-graph-update"),
                 ]
             ),
             dcc.Graph(
@@ -81,10 +80,7 @@ def serve_layout():
         ]
     )
 
-@app.callback(
-    Output('live-update-graph', 'figure'),
-    Input('interval-component', 'n_intervals')
-)
+@app.callback(Output('live-update-graph', 'figure'), Input('interval-component', 'n_intervals'))
 def update_graph_live(n):
     
 
@@ -104,14 +100,20 @@ def update_graph_live(n):
 
     return fig
 
-@app.callback(
-    Output('live-count-update', 'value'),
-    Input('interval-component', 'n_intervals')
-)
+
+@app.callback(Output('live-count-update', 'value'), Input('interval-component', 'n_intervals'))
 def update_total_count(n):
     return str(get_total_keystrokes())
 
 
-if __name__ == "__main__":
+
+@app.callback(Output('bar-graph-update', 'figure'), Input('interval-component', 'n_intervals'))
+def update_total_count(n):
+    return px.bar(get_sum_of_all_keypress(), x='keystroke', y='frequency', barmode="group")
+
+
+
+
+if __name__ == '__main__':
     app.layout = serve_layout
-    app.run_server(host="0.0.0.0", port=8050)
+    app.run_server(host='0.0.0.0', port=8050)
