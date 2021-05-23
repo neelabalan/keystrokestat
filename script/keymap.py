@@ -85,7 +85,7 @@ keymap = {
     88: 'NUM2',
     89: 'NUM3',
     90: 'NUM0',
-    91: 'NUM_DOT    ',
+    91: 'NUM_DOT',
     95: 'F11',
     96: 'F12',
     104: 'NUMENTER',

@@ -14,7 +14,6 @@ from keymap import keymap
 
 SCHEDULER_INTERVAL = 5
 scheduler = BackgroundScheduler(daemon=True)
-conn = sqlite3.connect("/{}/.keystroke/keystrokes.db".format(str(Path.home())))
 
 
 def get_xinput_ids()    :
@@ -59,7 +58,7 @@ def read_buffer(buffer):
     return buffer.stdout.read1().decode("utf-8")
 
 
-def split_text(buffer_text: str):
+def split_text(buffer_text):
     """ split text on \n """
     return buffer_text.split("\n")
 
@@ -98,8 +97,8 @@ def workflow(buffer):
     # print(df.head())
 
     if keypress:
-        df.to_sql("keystroke", con=conn, if_exists="append")
-    conn.close()
+        with sqlite3.connect("/{}/.keystroke/keystrokes.db".format(str(Path.home()))) as conn:
+            df.to_sql("keystroke", con=conn, if_exists="append")
 
 
 def run():
