@@ -2,13 +2,15 @@
 
 A tool for silent keystroke logging in the background using `xinput`
 
-## Screenshot at localhost:8050
-<<<<<<< HEAD
-=======
-> Only the scatter plot and total count (LED) is udpated in real time 
->>>>>>> f5b9773ed9df6db21c07d6c51cab2b88d7d7d6c2
+## Screenshot 
+### at localhost:8050
 
 ![plotly screenshot](./assets/plotly-scr.png)
+
+### Terminal gif
+> The table is updated every 5 seconds. Take a look at `SCHEDULER_INTERVAL` in `script.py`
+
+[![demo-keystroke.gif](https://i.postimg.cc/C11rJq2p/demo-keystroke.gif)](https://postimg.cc/Tyzc3pGt)
 
 ## Motivation
 
@@ -20,11 +22,7 @@ All the keystrokes are recorded! including the passwords and username that you t
 
 ## Requirements
 
-+ `xinput` 
-    + installation for xinput varies from distro to distro
-+ `dash, dash-daq and pandas` for interactive graph
-    + install using `pip install -r requirements.txt`
-
++ `xinput` (installation for xinput depends on the distro)
 
 
 ## How this works 
@@ -51,7 +49,7 @@ To get the device ID run `xinput` from terminal. In my case the device ID is `19
 
 The `xinput test` command with the device ID will print key release and key press to the `stdout`. 
 The python script uses the `subprocess` module to call the command and record `stdout` which is read from the buffer 
-every few minutes for storing the data in `SQLite` DB post processing of `stdout` buffer.
+every few seconds for storing the data in `SQLite` post processing of `stdout` buffer.
 
 ```bash
 [blue@linux] ~ xinput test 19
@@ -77,17 +75,26 @@ akey release 26
 
 ## How to run this?
 ```bash
-# starts xinput in the background
-[blue@linux] ~ python keystroke.py -r 
+# once you have cloned this repo
+cd keystrokestat
+pip3 install -r script/requirements.txt
 
-# for killing the xinput process running in the background
-[blue@linux] ~ python keystroke.py -k
+python3 script/keystroke.py --help
+Usage: keystroke.py [OPTIONS]
+
+  run workflow and log the keystrokes
+
+Options:
+  --view TEXT  displays top frequently used keys
+  --pkill      kill all instances of xinput
+  --help       Show this message and exit.
 
 ```
 
-To start the Dash sever 
+To start the Dash sever for live view
 
 ```bash
+cd server
 docker-compose up
 ```
 
