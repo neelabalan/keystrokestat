@@ -43,7 +43,7 @@ keymap = {
     45: 'k',
     46: 'l',
     47: 'SEMICOLON',
-    48: "SINGLE_QUOTE",
+    48: 'SINGLE_QUOTE',
     49: 'BACK_TICK',
     50: 'LSHIFT',
     51: 'BACKSLASH',
@@ -104,5 +104,5 @@ keymap = {
     119: 'DEL',
     133: 'LWIN',
     134: 'RWIN',
-    135: 'MENU'
+    135: 'MENU',
 }

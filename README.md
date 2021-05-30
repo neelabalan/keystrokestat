@@ -3,6 +3,10 @@
 A tool for silent keystroke logging in the background using `xinput`
 
 ## Screenshot at localhost:8050
+<<<<<<< HEAD
+=======
+> Only the scatter plot and total count (LED) is udpated in real time 
+>>>>>>> f5b9773ed9df6db21c07d6c51cab2b88d7d7d6c2
 
 ![plotly screenshot](./assets/plotly-scr.png)
 
