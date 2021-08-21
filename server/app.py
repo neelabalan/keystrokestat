@@ -41,12 +41,14 @@ def get_total_keystrokes():
 
 
 def get_sum_of_all_keypress():
-    return data_for_the_day() \
-        .sum() \
-        .to_frame() \
-        .reset_index() \
-        .drop([0, 102, 103]) \
-        .rename(columns={'index': 'keystroke', 0: 'frequency'})
+    return (
+        data_for_the_day() 
+            .sum() 
+            .to_frame() 
+            .reset_index() 
+            .drop([0, 102, 103]) 
+            .rename(columns={'index': 'keystroke', 0: 'frequency'})
+    )
 
 
 def serve_layout():

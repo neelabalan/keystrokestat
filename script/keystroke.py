@@ -7,7 +7,7 @@ import sqlite3
 import operator
 import itertools
 import functools
-from pathlib import Path
+import pathlib 
 from collections import Counter
 import logging
 
@@ -29,7 +29,9 @@ SCHEDULER_INTERVAL = 5
 scheduler = BackgroundScheduler(daemon=True)
 total_keystrokes = Counter({})
 console = Console()
-
+HOME_DIR = pathlib.Path.home()
+DB_DIR = '{}/.keystroke'.format(HOME_DIR)
+DB_PATH = '/'.join([DB_DIR, 'keystrokes.db'])
 
 def get_xinput_ids():
     try:
@@ -120,9 +122,7 @@ def workflow(buffer):
         columns=list(keymap.values()) + list(meta_dict.keys()),
     )
 
-    with sqlite3.connect(
-        '/{}/.keystroke/keystrokes.db'.format(str(Path.home()))
-    ) as conn:
+    with sqlite3.connect(DB_PATH) as conn:
         df.to_sql('keystroke', con=conn, if_exists='append')
 
 
@@ -153,10 +153,11 @@ def render_table(count):
 @click.command()
 @click.option(
     '--view',
-    is_flag=False,
-    default=False,
-    flag_value=10,
-    help='displays top frequently used keys',
+    is_flag     = False,
+    default     = False,
+    flag_value  = 10,
+    type        = click.IntRange(0, 30),
+    help        = 'displays top frequently used keys',
 )
 @click.option('--pkill', is_flag=True, help='kill all instances of xinput')
 def run(view , pkill):
@@ -181,6 +182,7 @@ def run(view , pkill):
         if pkill:
             kill('xinput test')
         elif view:
+            print('printing view here : {}'.format(view))
             render_table(int(view))
         else:
             while True:
@@ -192,4 +194,6 @@ def run(view , pkill):
 
 
 if __name__ == '__main__':
+    if not os.path.exists(DB_DIR):
+        os.mkdirs(DB_DIR)
     run()
