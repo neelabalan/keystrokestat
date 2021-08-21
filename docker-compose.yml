@@ -7,4 +7,4 @@ services:
     ports:
       - 8050:8050
     volumes:
-      - $HOME/.keystroke:/root/.keystroke
+      - "$HOME/.keystroke:/root/.keystroke"

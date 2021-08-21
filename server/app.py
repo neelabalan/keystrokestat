@@ -12,10 +12,8 @@ from dash.dependencies import Input, Output
 
 import pandas as pd
 
-
-# testing
-test_path = '/home/blue/.keystroke/keystrokes.db'
-DB_PATH = '/root/.keystroke/keystorkes.db'
+DB_PATH = '/root/.keystroke/keystrokes.db'
+ 
 external_stylesheets = ["https://codepen.io/chriddyp/pen/bWLwgP.css"]
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets, update_title=None)
 
@@ -28,8 +26,7 @@ data = {
 
 def data_for_the_day():
     """ total keystrokes for the day from db """
-    with sqlite3.connect(test_path) as conn:
-    # with sqlite3.connect(DB_PATH) as conn:
+    with sqlite3.connect(DB_PATH) as conn:
         query = "select * from keystroke where timestamp like '{}%'".format(
             str(datetime.datetime.now().date())
         )
