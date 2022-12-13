@@ -7,7 +7,7 @@ import sqlite3
 import operator
 import itertools
 import functools
-import pathlib 
+import pathlib
 from collections import Counter
 import logging
 
@@ -23,15 +23,16 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from keymap import keymap
 
 logging.basicConfig()
-logging.getLogger('apscheduler').setLevel(logging.ERROR)
+logging.getLogger("apscheduler").setLevel(logging.ERROR)
 
 SCHEDULER_INTERVAL = 5
 scheduler = BackgroundScheduler(daemon=True)
 total_keystrokes = Counter({})
 console = Console()
 HOME_DIR = pathlib.Path.home()
-DB_DIR = '{}/.keystroke'.format(HOME_DIR)
-DB_PATH = '/'.join([DB_DIR, 'keystrokes.db'])
+DB_DIR = "{}/.keystroke".format(HOME_DIR)
+DB_PATH = "/".join([DB_DIR, "keystrokes.db"])
+
 
 def get_xinput_ids():
     try:
@@ -40,13 +41,13 @@ def get_xinput_ids():
             shell=True,
             stdout=subprocess.PIPE,
         ).communicate()[0]
-        return xinput_ids.decode('utf-8').replace('\n', ' ')
+        return xinput_ids.decode("utf-8").replace("\n", " ")
     except:
-        print('EXCEPTION xinput ID not found')
+        print("EXCEPTION xinput ID not found")
 
 
 def get_pids(output, target_process):
-    '''get PID for running target process'''
+    """get PID for running target process"""
     filtered_process_list = [
         str(process)
         for process in output.splitlines()
@@ -54,54 +55,54 @@ def get_pids(output, target_process):
     ]
     pids = list()
     for process in filtered_process_list:
-        process = list(filter(None, process.split(' ')))
+        process = list(filter(None, process.split(" ")))
         pids.append(process[1])
     return pids
 
 
 def kill(target_process):
-    '''kills the xinput test process'''
+    """kills the xinput test process"""
     if target_process:
-        process = subprocess.Popen(['ps', 'aux'], stdout=subprocess.PIPE)
+        process = subprocess.Popen(["ps", "aux"], stdout=subprocess.PIPE)
         output, error = process.communicate()
         pids = get_pids(output, target_process)
         for pid in pids:
-            print('killing PID {}'.format(pid))
+            print("killing PID {}".format(pid))
             os.kill(int(pid), 9)
 
 
 def read_buffer(buffer):
-    '''read standard out buffer'''
-    return buffer.stdout.read1().decode('utf-8')
+    """read standard out buffer"""
+    return buffer.stdout.read1().decode("utf-8")
 
 
 def split_text(buffer_text):
-    '''split text on newline'''
-    return buffer_text.split('\n')
+    """split text on newline"""
+    return buffer_text.split("\n")
 
 
 def filter_text(lines):
-    '''filter empty strings and key releases'''
-    filtered_lines = filter(lambda line: line.startswith('key press'), lines)
+    """filter empty strings and key releases"""
+    filtered_lines = filter(lambda line: line.startswith("key press"), lines)
     return list(filter(None, filtered_lines))
 
 
 def map_keycode_to_keys(filtered_lines):
-    '''mapping xinput keycodes to keyboard keys'''
+    """mapping xinput keycodes to keyboard keys"""
     return [
-        keymap.get(int(list(filter(None, keycode.split(' ')))[-1]))
+        keymap.get(int(list(filter(None, keycode.split(" ")))[-1]))
         for keycode in filtered_lines
     ]
 
 
 def workflow(buffer):
-    '''
+    """
     -> read from buffer
     -> transform text for easy filtering
     -> filter key releases and empty string
     -> map xinput code to char
     -> transform to pandas dataframe and write to sqlite
-    '''
+    """
     global total_keystrokes
     buffer_text = read_buffer(buffer)
     if buffer_text:
@@ -123,27 +124,27 @@ def workflow(buffer):
     )
 
     with sqlite3.connect(DB_PATH) as conn:
-        df.to_sql('keystroke', con=conn, if_exists='append')
+        df.to_sql("keystroke", con=conn, if_exists="append")
 
 
 def generate_table(count):
-    '''make a new table'''
+    """make a new table"""
     table = Table(title="keypress frequency")
-    table.add_column('Key')
-    table.add_column('Frequency')
+    table.add_column("Key")
+    table.add_column("Frequency")
     temp_dict = dict(itertools.islice(total_keystrokes.items(), count))
     for key, val in temp_dict.items():
         table.add_row(key, str(val))
-    return Align.center(table) 
+    return Align.center(table)
 
 
 def render_table(count):
-    '''display table with top key counts'''
+    """display table with top key counts"""
     generate_n_rows_table = functools.partial(generate_table, count)
     with Live(
-        generate_n_rows_table(), 
-        console=console.clear(), 
-        refresh_per_second=SCHEDULER_INTERVAL
+        generate_n_rows_table(),
+        console=console.clear(),
+        refresh_per_second=SCHEDULER_INTERVAL,
     ) as live:
         while True:
             time.sleep(SCHEDULER_INTERVAL)
@@ -152,26 +153,26 @@ def render_table(count):
 
 @click.command()
 @click.option(
-    '--view',
-    is_flag     = False,
-    default     = False,
-    flag_value  = 10,
-    type        = click.IntRange(0, 30),
-    help        = 'displays top frequently used keys',
+    "--view",
+    is_flag=False,
+    default=False,
+    flag_value=10,
+    type=click.IntRange(0, 30),
+    help="displays top frequently used keys",
 )
-@click.option('--pkill', is_flag=True, help='kill all instances of xinput')
-def run(view , pkill):
-    '''run workflow and log the keystrokes'''
+@click.option("--pkill", is_flag=True, help="kill all instances of xinput")
+def run(view, pkill):
+    """run workflow and log the keystrokes"""
     echos = None
     try:
-        command = 'echo ' + get_xinput_ids() + ' | xargs -P0 -n1 xinput test'
+        command = "echo " + get_xinput_ids() + " | xargs -P0 -n1 xinput test"
         echos = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
     except:
-        print('EXCEPTION not valid device id')
+        print("EXCEPTION not valid device id")
 
     scheduler.add_job(
         workflow,
-        trigger='interval',
+        trigger="interval",
         seconds=SCHEDULER_INTERVAL,
         coalesce=True,
         args=(echos,),
@@ -180,20 +181,20 @@ def run(view , pkill):
 
     try:
         if pkill:
-            kill('xinput test')
+            kill("xinput test")
         elif view:
-            print('printing view here : {}'.format(view))
+            print("printing view here : {}".format(view))
             render_table(int(view))
         else:
             while True:
                 time.sleep(2)
 
     except (KeyboardInterrupt, SystemExit):
-        kill('xinput test')
+        kill("xinput test")
         scheduler.shutdown()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     if not os.path.exists(DB_DIR):
         os.mkdirs(DB_DIR)
     run()

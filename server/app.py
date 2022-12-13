@@ -12,20 +12,16 @@ from dash.dependencies import Input, Output
 
 import pandas as pd
 
-DB_PATH = '/root/.keystroke/keystrokes.db'
- 
+DB_PATH = "/root/.keystroke/keystrokes.db"
+
 external_stylesheets = ["https://codepen.io/chriddyp/pen/bWLwgP.css"]
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets, update_title=None)
 
-data = {
-    'time': [],
-    'keystrokes': [],
-    'last_updated': None
-}
+data = {"time": [], "keystrokes": [], "last_updated": None}
 
 
 def data_for_the_day():
-    """ total keystrokes for the day from db """
+    """total keystrokes for the day from db"""
     with sqlite3.connect(DB_PATH) as conn:
         query = "select * from keystroke where timestamp like '{}%'".format(
             str(datetime.datetime.now().date())
@@ -39,12 +35,12 @@ def get_total_keystrokes():
 
 def get_sum_of_all_keypress():
     return (
-        data_for_the_day() 
-            .sum() 
-            .to_frame() 
-            .reset_index() 
-            .drop([0, 102, 103]) 
-            .rename(columns={'index': 'keystroke', 0: 'frequency'})
+        data_for_the_day()
+        .sum()
+        .to_frame()
+        .reset_index()
+        .drop([0, 102, 103])
+        .rename(columns={"index": "keystroke", 0: "frequency"})
     )
 
 
@@ -56,7 +52,7 @@ def serve_layout():
                 id="live-count-update",
                 label="",
                 color="#103366",
-                value='0',
+                value="0",
                 style={"textAlign": "center"},
             ),
             html.Br(),
@@ -68,51 +64,56 @@ def serve_layout():
                 ]
             ),
             dcc.Graph(
-                id='live-update-graph',
+                id="live-update-graph",
                 # animate = True
             ),
             dcc.Interval(
-                id='interval-component',
-                interval=5*1000, # in milliseconds
-                n_intervals=0
-            )
+                id="interval-component",
+                interval=5 * 1000,  # in milliseconds
+                n_intervals=0,
+            ),
         ]
     )
 
-@app.callback(Output('live-update-graph', 'figure'), Input('interval-component', 'n_intervals'))
+
+@app.callback(
+    Output("live-update-graph", "figure"), Input("interval-component", "n_intervals")
+)
 def update_graph_live(n):
-    
 
     # Collect some data
     db_data = data_for_the_day()
-    last_val = db_data['total'].iloc[-1]
+    last_val = db_data["total"].iloc[-1]
 
-    last_timestamp = db_data['timestamp'].iloc[-1]
-    if data['last_updated'] == last_timestamp:
-        data['keystrokes'].append(0)
+    last_timestamp = db_data["timestamp"].iloc[-1]
+    if data["last_updated"] == last_timestamp:
+        data["keystrokes"].append(0)
     else:
-        data['keystrokes'].append(last_val)
-        data['last_updated'] = last_timestamp
+        data["keystrokes"].append(last_val)
+        data["last_updated"] = last_timestamp
 
-    data['time'].append(datetime.datetime.now().strftime('%X'))
-    fig = go.Figure(data=[go.Scatter(x=data['time'], y=data['keystrokes'])])
+    data["time"].append(datetime.datetime.now().strftime("%X"))
+    fig = go.Figure(data=[go.Scatter(x=data["time"], y=data["keystrokes"])])
 
     return fig
 
 
-@app.callback(Output('live-count-update', 'value'), Input('interval-component', 'n_intervals'))
+@app.callback(
+    Output("live-count-update", "value"), Input("interval-component", "n_intervals")
+)
 def update_total_count(n):
     return str(get_total_keystrokes())
 
 
-
-@app.callback(Output('bar-graph-update', 'figure'), Input('interval-component', 'n_intervals'))
+@app.callback(
+    Output("bar-graph-update", "figure"), Input("interval-component", "n_intervals")
+)
 def update_total_count(n):
-    return px.bar(get_sum_of_all_keypress(), x='keystroke', y='frequency', barmode="group")
+    return px.bar(
+        get_sum_of_all_keypress(), x="keystroke", y="frequency", barmode="group"
+    )
 
 
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.layout = serve_layout
-    app.run_server(host='0.0.0.0', port=8050)
+    app.run_server(host="0.0.0.0", port=8050)
